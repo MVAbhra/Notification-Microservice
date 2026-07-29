@@ -18,6 +18,7 @@ namespace Foreman_Backend_Notif
 
             builder.Services.AddControllers();
 
+            builder.Services.AddScoped<NotificationService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
