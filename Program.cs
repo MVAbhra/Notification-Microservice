@@ -1,5 +1,6 @@
 using Foreman_Backend_Notif.Data;
 using Microsoft.EntityFrameworkCore;
+using Foreman_Backend_Notif.Services;
 
 namespace Foreman_Backend_Notif
 {
