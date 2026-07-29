@@ -32,10 +32,16 @@ namespace Foreman_Backend_Notif.Services
             {
                 Console.WriteLine("Connecting SMTP...");
 
+                smtp.ServerCertificateValidationCallback = (s, c, h, e) =>
+                {
+                    Console.WriteLine("Certificate callback reached.");
+                    return true;
+                };
+                
                 await smtp.ConnectAsync(
                     "smtp.gmail.com",
-                    587,
-                    SecureSocketOptions.StartTls);
+                    465,
+                    SecureSocketOptions.SslOnConnect);
 
                 Console.WriteLine("SMTP Connected!");
             }
