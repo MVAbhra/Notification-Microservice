@@ -39,7 +39,7 @@ namespace Foreman_Backend_Notif
 
 
             app.MapControllers();
-
+            app.MapGet("/", () => "Notification Service is running!");
             app.Run();
         }
     }
