@@ -30,10 +30,10 @@ namespace Foreman_Backend_Notif
             //}
 
             //if not in dev mode, only then use Https
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseHttpsRedirection();
-            }
+            // if (!app.Environment.IsDevelopment())
+            // {
+            //     app.UseHttpsRedirection();
+            // }
 
             app.UseAuthorization();
 
