@@ -26,6 +26,8 @@ namespace Foreman_Backend_Notif.Services
 
             using var smtp = new SmtpClient();
 
+            Console.WriteLine("Connecting to smtp...");
+
             await smtp.ConnectAsync("smtp.gmail.com", 465, SecureSocketOptions.SslOnConnect);
 
             Console.WriteLine("Authenticating...");
