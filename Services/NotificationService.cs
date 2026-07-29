@@ -26,14 +26,20 @@ namespace Foreman_Backend_Notif.Services
 
             using var smtp = new SmtpClient();
 
-            await smtp.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            await smtp.ConnectAsync("smtp.gmail.com", 465, SecureSocketOptions.SslOnConnect);
 
+            Console.WriteLine("Authenticating...");
+            
             await smtp.AuthenticateAsync(
                 "foreman.cdac.app@gmail.com",
                 "bsyclgongmftefmx");
-
+            
+            Console.WriteLine("Sending email...");
+            
             await smtp.SendAsync(email);
-
+            
+            Console.WriteLine("Email sent successfully!");
+            
             await smtp.DisconnectAsync(true);
         }
 
