@@ -1,8 +1,7 @@
-﻿using Foreman_Backend_Notif.Models;
+using Foreman_Backend_Notif.Models;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
-using MailKit.Net.Smtp;
-using System.Net.Sockets;
 
 namespace Foreman_Backend_Notif.Services
 {
@@ -10,50 +9,91 @@ namespace Foreman_Backend_Notif.Services
     {
         public async Task SendNotificationEmail(Notification n)
         {
+            MailboxAddress senderAddress =
+                new MailboxAddress("Foreman", "foreman.cdac.app@gmail.com");
 
-            MailboxAddress SenderAddress = new MailboxAddress("Foreman", "foreman.cdac.app@gmail.com");
-            MailboxAddress ReceiverAddress = new MailboxAddress("", n.ReceiverEmail);
+            MailboxAddress receiverAddress =
+                new MailboxAddress("", n.ReceiverEmail);
 
             var email = new MimeMessage();
 
-            email.From.Add(SenderAddress);
-            email.To.Add(ReceiverAddress);
+            email.From.Add(senderAddress);
+            email.To.Add(receiverAddress);
             email.Subject = n.Title;
             email.Body = new TextPart("plain")
             {
-
                 Text = n.Message
             };
 
             using var smtp = new SmtpClient();
 
-            Console.WriteLine("Connecting to smtp...");
-
+            // ---------- Connect ----------
             try
             {
-                using var tcp = new TcpClient();
-                await tcp.ConnectAsync("smtp.gmail.com", 587);
-                Console.WriteLine("TCP connection succeeded.");
+                Console.WriteLine("Connecting SMTP...");
+
+                await smtp.ConnectAsync(
+                    "smtp.gmail.com",
+                    587,
+                    SecureSocketOptions.StartTls);
+
+                Console.WriteLine("SMTP Connected!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine("ConnectAsync failed!");
+                Console.WriteLine(ex);
+                throw;
             }
 
-            Console.WriteLine("Authenticating...");
-            
-            await smtp.AuthenticateAsync(
-                "foreman.cdac.app@gmail.com",
-                "bsyclgongmftefmx");
-            
-            Console.WriteLine("Sending email...");
-            
-            await smtp.SendAsync(email);
-            
-            Console.WriteLine("Email sent successfully!");
-            
-            await smtp.DisconnectAsync(true);
-        }
+            // ---------- Authenticate ----------
+            try
+            {
+                Console.WriteLine("Authenticating...");
 
+                await smtp.AuthenticateAsync(
+                    "foreman.cdac.app@gmail.com",
+                    "bsyclgongmftefmx");
+
+                Console.WriteLine("Authenticated!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("AuthenticateAsync failed!");
+                Console.WriteLine(ex);
+                throw;
+            }
+
+            // ---------- Send ----------
+            try
+            {
+                Console.WriteLine("Sending email...");
+
+                await smtp.SendAsync(email);
+
+                Console.WriteLine("Email sent successfully!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("SendAsync failed!");
+                Console.WriteLine(ex);
+                throw;
+            }
+
+            // ---------- Disconnect ----------
+            try
+            {
+                Console.WriteLine("Disconnecting...");
+
+                await smtp.DisconnectAsync(true);
+
+                Console.WriteLine("Disconnected.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("DisconnectAsync failed!");
+                Console.WriteLine(ex);
+            }
+        }
     }
 }
