@@ -39,7 +39,15 @@ namespace Foreman_Backend_Notif
 
 
             app.MapControllers();
+            
             app.MapGet("/", () => "Notification Service is running!");
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<NotifDbContext>();
+                db.Database.Migrate();
+            }
+            
             app.Run();
         }
     }
