@@ -2,6 +2,7 @@
 using MailKit.Security;
 using MimeKit;
 using MailKit.Net.Smtp;
+using System.Net.Sockets;
 
 namespace Foreman_Backend_Notif.Services
 {
@@ -28,7 +29,16 @@ namespace Foreman_Backend_Notif.Services
 
             Console.WriteLine("Connecting to smtp...");
 
-            await smtp.ConnectAsync("74.125.24.109", 587, SecureSocketOptions.StartTls);
+            try
+            {
+                using var tcp = new TcpClient();
+                await tcp.ConnectAsync("smtp.gmail.com", 587);
+                Console.WriteLine("TCP connection succeeded.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             Console.WriteLine("Authenticating...");
             
