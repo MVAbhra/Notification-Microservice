@@ -30,7 +30,14 @@ namespace Foreman_Backend_Notif.Controllers
             await _context.Notifications.AddAsync(notification);
             await _context.SaveChangesAsync();
 
-            await _notificationService.SendNotificationEmail(notification);
+            try
+            {
+                await _notificationService.SendNotificationEmail(notification);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
 
             return CreatedAtAction(
                 nameof(GetOneNotification),

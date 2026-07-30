@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Foreman_Backend_Notif.Models

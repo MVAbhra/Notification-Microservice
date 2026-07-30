@@ -1,105 +1,68 @@
 using Foreman_Backend_Notif.Models;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
+using Mailjet.Client;
+using Mailjet.Client.Resources;
+using Newtonsoft.Json.Linq;
 
-namespace Foreman_Backend_Notif.Services
+namespace Foreman_Backend_Notif.Services;
+
+public class NotificationService
 {
-    public class NotificationService
+    private readonly IConfiguration _configuration;
+
+    public NotificationService(IConfiguration configuration)
     {
-        public async Task SendNotificationEmail(Notification n)
+        _configuration = configuration;
+    }
+
+    public async Task SendNotificationEmail(Notification n)
+    {
+        var client = new MailjetClient(
+            _configuration["Mailjet:ApiKey"],
+            _configuration["Mailjet:ApiSecret"]);
+
+        var request = new MailjetRequest
         {
-            MailboxAddress senderAddress =
-                new MailboxAddress("Foreman", "foreman.cdac.app@gmail.com");
+            Resource = SendV31.Resource
+        };
 
-            MailboxAddress receiverAddress =
-                new MailboxAddress("", n.ReceiverEmail);
-
-            var email = new MimeMessage();
-
-            email.From.Add(senderAddress);
-            email.To.Add(receiverAddress);
-            email.Subject = n.Title;
-            email.Body = new TextPart("plain")
+        var body = new JObject
+        {
+            ["Messages"] = new JArray
             {
-                Text = n.Message
-            };
-
-            using var smtp = new SmtpClient();
-
-            // ---------- Connect ----------
-            try
-            {
-                Console.WriteLine("Connecting SMTP...");
-
-                smtp.ServerCertificateValidationCallback = (s, c, h, e) =>
+                new JObject
                 {
-                    Console.WriteLine("Certificate callback reached.");
-                    return true;
-                };
-                
-                await smtp.ConnectAsync(
-                    "smtp.gmail.com",
-                    465,
-                    SecureSocketOptions.SslOnConnect);
+                    ["From"] = new JObject
+                    {
+                        ["Email"] = _configuration["Mailjet:SenderEmail"],
+                        ["Name"] = _configuration["Mailjet:SenderName"]
+                    },
 
-                Console.WriteLine("SMTP Connected!");
+                    ["To"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["Email"] = n.ReceiverEmail
+                        }
+                    },
+
+                    ["Subject"] = n.Title,
+
+                    ["TextPart"] = n.Message,
+
+                    ["HTMLPart"] =
+                        $"<h3>{n.Title}</h3><p>{n.Message}</p>"
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("ConnectAsync failed!");
-                Console.WriteLine(ex);
-                throw;
-            }
+        };
 
-            // ---------- Authenticate ----------
-            try
-            {
-                Console.WriteLine("Authenticating...");
+        // Replace SetBody with assignment to the Body property
+        request.Body = body;
 
-                await smtp.AuthenticateAsync(
-                    "foreman.cdac.app@gmail.com",
-                    "bsyclgongmftefmx");
+        var response = await client.PostAsync(request);
 
-                Console.WriteLine("Authenticated!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("AuthenticateAsync failed!");
-                Console.WriteLine(ex);
-                throw;
-            }
-
-            // ---------- Send ----------
-            try
-            {
-                Console.WriteLine("Sending email...");
-
-                await smtp.SendAsync(email);
-
-                Console.WriteLine("Email sent successfully!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("SendAsync failed!");
-                Console.WriteLine(ex);
-                throw;
-            }
-
-            // ---------- Disconnect ----------
-            try
-            {
-                Console.WriteLine("Disconnecting...");
-
-                await smtp.DisconnectAsync(true);
-
-                Console.WriteLine("Disconnected.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("DisconnectAsync failed!");
-                Console.WriteLine(ex);
-            }
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception(response.GetErrorInfo());
         }
     }
 }
